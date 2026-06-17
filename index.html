@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Robot Hero Mission - Educational Adventure Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#38bdf8">
+    <meta name="description" content="Help the Robot Hero complete missions in challenging environments, collect parts, avoid hazards, and solve quizzes to earn cool upgrades! Learn about the 5 D's of Robotics.">
+</head>
+<body>
+
+<div id="app-container">
+
+    <!-- MAIN MENU SCREEN -->
+    <div id="menu-screen" class="screen">
+        <div class="menu-header">
+            <h1 class="menu-title">ROBOT HERO<br>MISSION</h1>
+            <p class="menu-subtitle">The 5 D's of Robotics</p>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 8px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;">Created by John Anthony E. Beron</p>
+        </div>
+
+        <div class="menu-options">
+            <button class="primary-btn" id="btn-play-game">Start Mission</button>
+            <button class="secondary-btn" id="btn-show-upgrades">Equipped Upgrades</button>
+            <button class="secondary-btn" id="btn-show-instructions">How To Play</button>
+            <button class="secondary-btn" id="btn-menu-fullscreen">Toggle Fullscreen</button>
+            <button class="secondary-btn" id="btn-reset-data" style="margin-top: 10px; font-size: 0.8rem; opacity: 0.6; padding: 6px 12px;">Reset Data</button>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div class="menu-progress-tracker">
+            <div class="progress-stats">
+                <span>Total Score: <strong id="menu-hud-score">0</strong> pts</span>
+                <span>Missions Completed: <strong id="menu-hud-levels">0/5</strong></span>
+            </div>
+            <div class="progress-dots">
+                <div class="level-dot" id="dot-l1">1</div>
+                <div class="level-dot" id="dot-l2">2</div>
+                <div class="level-dot" id="dot-l3">3</div>
+                <div class="level-dot" id="dot-l4">4</div>
+                <div class="level-dot" id="dot-l5">5</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEVEL SELECTION SCREEN -->
+    <div id="level-select-screen" class="screen hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
+            <button class="secondary-btn" id="btn-back-menu">◀ Menu</button>
+            <h2>Select Mission Sector</h2>
+            <div style="width: 80px;"></div> <!-- Spacer -->
+        </div>
+
+        <div class="level-grid">
+            <!-- Sector 1 -->
+            <div class="level-card level-1" id="card-l1" onclick="gameEngine.selectLevel(1)">
+                <div class="level-card-icon">🟦</div>
+                <div class="level-card-title">Dull Factory</div>
+                <div class="level-card-subtitle">Manufacturing</div>
+                <div class="level-card-reward">🎁 Speed Boost</div>
+                <div class="lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-text">Locked</span>
+                </div>
+            </div>
+
+            <!-- Sector 2 -->
+            <div class="level-card level-2 locked" id="card-l2" onclick="gameEngine.selectLevel(2)">
+                <div class="level-card-icon">🟩</div>
+                <div class="level-card-title">Dirty Sewer</div>
+                <div class="level-card-subtitle">Sanitation</div>
+                <div class="level-card-reward">🎁 Waterproof Armor</div>
+                <div class="lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-text">Locked</span>
+                </div>
+            </div>
+
+            <!-- Sector 3 -->
+            <div class="level-card level-3 locked" id="card-l3" onclick="gameEngine.selectLevel(3)">
+                <div class="level-card-icon">🟥</div>
+                <div class="level-card-title">Dangerous Volcano</div>
+                <div class="level-card-subtitle">Extreme heat</div>
+                <div class="level-card-reward">🎁 Heat Shield</div>
+                <div class="lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-text">Locked</span>
+                </div>
+            </div>
+
+            <!-- Sector 4 -->
+            <div class="level-card level-4 locked" id="card-l4" onclick="gameEngine.selectLevel(4)">
+                <div class="level-card-icon">🟨</div>
+                <div class="level-card-title">Dear Deep Sea</div>
+                <div class="level-card-subtitle">Valuable subsea</div>
+                <div class="level-card-reward">🎁 Sonar Scanner</div>
+                <div class="lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-text">Locked</span>
+                </div>
+            </div>
+
+            <!-- Sector 5 -->
+            <div class="level-card level-5 locked" id="card-l5" onclick="gameEngine.selectLevel(5)">
+                <div class="level-card-icon">🟪</div>
+                <div class="level-card-title">Difficult Surgery</div>
+                <div class="level-card-subtitle">Healthcare</div>
+                <div class="level-card-reward">🎁 Surgeon Module</div>
+                <div class="lock-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <span class="lock-text">Locked</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLAY GAME SCREEN -->
+    <div id="play-screen" class="screen hidden">
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-item">
+                <button class="hud-btn" id="btn-pause-game">Pause</button>
+                <button class="hud-btn" id="btn-hud-fullscreen" style="margin-left: 8px;">Fullscreen</button>
+            </div>
+            
+            <div class="hud-objectives" id="hud-objectives">
+                <span id="hud-objective-text">Objectives: 0/10</span>
+            </div>
+
+            <div class="hud-item">
+                <span class="hud-label">Score:</span>
+                <span class="hud-value glow-gold" id="hud-score">0</span>
+            </div>
+
+            <div class="hud-item">
+                <span class="hud-label">Sector:</span>
+                <span class="hud-value glow-blue" id="hud-level-name">-</span>
+            </div>
+        </div>
+
+        <!-- Action / Interaction Prompts -->
+        <div id="hud-action-prompt" class="hidden" style="position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); border: 2.5px solid var(--color-success); padding: 8px 16px; border-radius: 12px; z-index: 25; font-size: 0.9rem; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: var(--glow-success);">
+            ⚠️ <span id="hud-action-text">Hold SPACE to scan</span>
+        </div>
+
+        <!-- Tutorial Bubble overlay -->
+        <div id="hud-tutorial-bubble" class="hidden" style="position: absolute; top: 75px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.9); border: 1.5px solid var(--color-primary); padding: 10px 16px; border-radius: 12px; z-index: 25; font-size: 0.85rem; line-height: 1.5; color: #cbd5e1; box-shadow: var(--glow-primary);">
+            💡 <span id="hud-tutorial-text">-</span>
+        </div>
+
+        <!-- Game Canvas -->
+        <div id="canvas-container">
+            <canvas id="game-canvas" width="1024" height="580"></canvas>
+        </div>
+
+        <!-- Mobile Touch Controls overlay -->
+        <div class="mobile-controls">
+            <div class="dpad-container">
+                <button class="mobile-btn" id="btn-left">◀</button>
+                <button class="mobile-btn" id="btn-right">▶</button>
+            </div>
+            <div class="action-buttons">
+                <button class="mobile-btn action-use" id="btn-use">ACTION</button>
+                <button class="mobile-btn action-jump" id="btn-jump">JUMP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSTRUCTIONS MODAL -->
+    <div id="instructions-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📖 How to Play</h2>
+                <button class="close-btn" id="btn-close-instructions">&times;</button>
+            </div>
+            
+            <p class="instruction-text">
+                Help the Robot Hero complete missions in challenging environments. Collect parts, avoid hazards, and answer quizzes to earn upgrades.
+            </p>
+
+            <div class="instruction-section">
+                <h3>🎮 Controls</h3>
+                <div class="control-guide">
+                    <div class="control-item">
+                        <span class="key-cap">◀</span> / <span class="key-cap">A</span>
+                        <span>Move Left</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key-cap">▶</span> / <span class="key-cap">D</span>
+                        <span>Move Right</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key-cap">▲</span> / <span class="key-cap">W</span> / <span class="key-cap">SPACE</span>
+                        <span>Jump / Swim</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key-cap">E</span>
+                        <span>Interact / Clean / Repair</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instruction-section">
+                <h3>🤖 The 5 D's of Robotics</h3>
+                <p class="instruction-text" style="font-size: 0.85rem;">
+                    <strong>Dull:</strong> Repetitive factory operations.<br>
+                    <strong>Dirty:</strong> Sanitation and sewer inspection.<br>
+                    <strong>Dangerous:</strong> Volcano and disaster surveys.<br>
+                    <strong>Dear:</strong> Subsea cable and marine conservation.<br>
+                    <strong>Difficult:</strong> Precise robotic surgical assistance.
+                </p>
+            </div>
+
+            <button class="primary-btn" id="btn-instructions-ok" style="width: 100%;">Got It!</button>
+        </div>
+    </div>
+
+    <!-- UPGRADES SHOP MODAL -->
+    <div id="upgrades-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Visual Modules & Upgrades</h2>
+                <button class="close-btn" id="btn-close-upgrades">&times;</button>
+            </div>
+
+            <div class="upgrades-list">
+                <!-- Speed -->
+                <div class="upgrade-row" id="row-upg-speed">
+                    <div class="upgrade-icon">🚀</div>
+                    <div class="upgrade-details">
+                        <div class="upgrade-name">Basic Speed Upgrade</div>
+                        <div class="upgrade-desc">Improves movement speed. Attaches thrusters.</div>
+                    </div>
+                    <div class="upgrade-status" id="status-upg-speed">Locked</div>
+                </div>
+
+                <!-- Waterproof -->
+                <div class="upgrade-row" id="row-upg-waterproof">
+                    <div class="upgrade-icon">🛡️</div>
+                    <div class="upgrade-details">
+                        <div class="upgrade-name">Waterproof Armor Upgrade</div>
+                        <div class="upgrade-desc">Reduces sewer slime damage. Attaches green body seals.</div>
+                    </div>
+                    <div class="upgrade-status" id="status-upg-waterproof">Locked</div>
+                </div>
+
+                <!-- Heat Shield -->
+                <div class="upgrade-row" id="row-upg-heatShield">
+                    <div class="upgrade-icon">🔥</div>
+                    <div class="upgrade-details">
+                        <div class="upgrade-name">Heat Shield Upgrade</div>
+                        <div class="upgrade-desc">Reduces volcano lava damage. Envelops player in a red forcefield.</div>
+                    </div>
+                    <div class="upgrade-status" id="status-upg-heatShield">Locked</div>
+                </div>
+
+                <!-- Sonar -->
+                <div class="upgrade-row" id="row-upg-sonar">
+                    <div class="upgrade-icon">📡</div>
+                    <div class="upgrade-details">
+                        <div class="upgrade-name">Sonar Scanner Upgrade</div>
+                        <div class="upgrade-desc">Visual sonar pulses. Attaches scanning satellite dish.</div>
+                    </div>
+                    <div class="upgrade-status" id="status-upg-sonar">Locked</div>
+                </div>
+
+                <!-- Surgeon -->
+                <div class="upgrade-row" id="row-upg-surgeon">
+                    <div class="upgrade-icon">⚕️</div>
+                    <div class="upgrade-details">
+                        <div class="upgrade-name">Master Surgeon Module</div>
+                        <div class="upgrade-desc">Enables clinical tool handling. Attaches surgical claw arm.</div>
+                    </div>
+                    <div class="upgrade-status" id="status-upg-surgeon">Locked</div>
+                </div>
+            </div>
+
+            <button class="primary-btn" id="btn-upgrades-ok" style="width: 100%; margin-top: 20px;">Return</button>
+        </div>
+    </div>
+
+    <!-- QUIZ MODAL -->
+    <div id="quiz-modal" class="modal hidden">
+        <div class="modal-content" id="quiz-container">
+            <!-- Rendered dynamically by quiz.js -->
+        </div>
+    </div>
+
+    <!-- LEVEL COMPLETE / UPGRADE UNLOCKED MODAL -->
+    <div id="level-complete-modal" class="modal hidden">
+        <div class="modal-content" id="complete-modal-content" style="text-align: center;">
+            <!-- Rendered dynamically by game.js -->
+        </div>
+    </div>
+
+    <!-- FACT READER MODAL -->
+    <div id="fact-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <h2 id="fact-modal-title" style="color: var(--color-primary); font-size: 1.3rem;">Fact 1 of 5</h2>
+            <p id="fact-modal-text" style="margin: 20px 0; line-height: 1.6; font-size: 1.05rem; color: #cbd5e1; text-align: left;"></p>
+            <button class="primary-btn" id="btn-fact-ok" style="width: 100%;">Got It!</button>
+        </div>
+    </div>
+
+    <!-- PAUSE MENU MODAL -->
+    <div id="pause-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2>Sector Terminated</h2>
+            <p style="color:#64748b; margin-top: 6px; margin-bottom: 20px;">Mission is currently suspended.</p>
+
+            <div class="pause-menu-grid">
+                <button class="primary-btn" id="btn-pause-resume">Resume Sector</button>
+                <button class="secondary-btn" id="btn-pause-mute">Mute Audio</button>
+                <button class="secondary-btn" id="btn-pause-exit" style="border-color: rgba(239, 68, 68, 0.4); color: var(--color-danger);">Abort Mission</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER MODAL -->
+    <div id="game-over-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 440px; text-align: center;">
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">💥</div>
+            <h2 style="color:var(--color-danger); text-transform: uppercase;">Mission Failed</h2>
+            <p id="game-over-reason" style="margin: 12px 0; color:#cbd5e1;"></p>
+            
+            <div class="pause-menu-grid" style="margin-top: 20px;">
+                <button class="primary-btn" onclick="gameEngine.restartLevel()">Retry Sector</button>
+                <button class="secondary-btn" onclick="gameEngine.exitToMenu()">Command Center</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VICTORY CERTIFICATE SCREEN -->
+    <div id="victory-screen" class="screen hidden">
+        <div class="certificate-card">
+            <h2 class="victory-title" style="font-size: 1.35rem; margin-bottom: 4px;">🏆 ROBOT HERO CERTIFIED</h2>
+            <div class="victory-subtitle" style="font-size: 0.95rem; margin-bottom: 10px;">5D Robotics Academy</div>
+            
+            <div class="badge-wrapper" style="width: 80px; height: 80px; margin: 10px auto;">
+                <div class="victory-badge" style="font-size: 3.5rem;">🥇</div>
+            </div>
+
+            <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; max-width: 480px; margin: 0 auto 15px auto;">
+                <strong>Congratulations, recruit!</strong> You completed all Robot Hero Missions and learned how robots help humans in Dull, Dirty, Dangerous, Dear, and Difficult jobs.
+            </p>
+
+            <div class="victory-details" style="padding: 10px; margin-bottom: 15px;">
+                <div class="victory-score-grid" style="margin-top: 0; font-size: 0.9rem;">
+                    <div class="victory-score-item" style="padding: 6px;">
+                        <span>Final Score</span>
+                        <strong id="victory-final-score" style="font-size: 1.1rem;">0 PTS</strong>
+                    </div>
+                    <div class="victory-score-item" style="padding: 6px;">
+                        <span>Rank</span>
+                        <strong style="font-size: 1.1rem;">Master Operator</strong>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                    <span style="font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 2px;">Earned Upgrades</span>
+                    <span id="victory-unlocked-upgrades" style="color: #fff; font-size: 0.8rem; font-weight: 600;">-</span>
+                </div>
+            </div>
+
+            <button class="primary-btn" id="btn-victory-replay" style="width: 100%;">Return to Main Menu</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- scripts loading -->
+<script src="sound.js"></script>
+<script src="quiz.js"></script>
+<script src="game.js"></script>
+
+<script>
+    // Screen bindings
+    document.getElementById('btn-play-game').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('menu-screen').classList.add('hidden');
+        document.getElementById('level-select-screen').classList.remove('hidden');
+        gameEngine.gameState = 'level_select';
+        
+        // Refresh level lock overlay cards
+        for (let i = 1; i <= 5; i++) {
+            const card = document.getElementById(`card-l${i}`);
+            if (card) {
+                if (i <= gameEngine.unlockedLevels) {
+                    card.classList.remove('locked');
+                } else {
+                    card.classList.add('locked');
+                }
+            }
+        }
+    });
+
+    document.getElementById('btn-back-menu').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('level-select-screen').classList.add('hidden');
+        document.getElementById('menu-screen').classList.remove('hidden');
+        gameEngine.gameState = 'menu';
+    });
+
+    // Instructions
+    document.getElementById('btn-show-instructions').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('instructions-modal').classList.remove('hidden');
+    });
+    document.getElementById('btn-close-instructions').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('instructions-modal').classList.add('hidden');
+    });
+    document.getElementById('btn-instructions-ok').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('instructions-modal').classList.add('hidden');
+    });
+
+    // Upgrades
+    document.getElementById('btn-show-upgrades').addEventListener('click', () => {
+        window.sounds.playClick();
+        
+        // Update upgrade lock statuses in modal list
+        const checkUpg = (key, idRow, idStatus) => {
+            const row = document.getElementById(idRow);
+            const status = document.getElementById(idStatus);
+            if (gameEngine.upgrades[key]) {
+                row.classList.add('active');
+                status.textContent = 'Equipped';
+            } else {
+                row.classList.remove('active');
+                status.textContent = 'Locked';
+            }
+        };
+
+        checkUpg('speed', 'row-upg-speed', 'status-upg-speed');
+        checkUpg('waterproof', 'row-upg-waterproof', 'status-upg-waterproof');
+        checkUpg('heatShield', 'row-upg-heatShield', 'status-upg-heatShield');
+        checkUpg('sonar', 'row-upg-sonar', 'status-upg-sonar');
+        checkUpg('surgeon', 'row-upg-surgeon', 'status-upg-surgeon');
+
+        document.getElementById('upgrades-modal').classList.remove('hidden');
+    });
+    document.getElementById('btn-close-upgrades').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('upgrades-modal').classList.add('hidden');
+    });
+    document.getElementById('btn-upgrades-ok').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('upgrades-modal').classList.add('hidden');
+    });
+
+    // Reset Progress
+    document.getElementById('btn-reset-data').addEventListener('click', () => {
+        if (confirm("Are you sure you want to reset all mission progress and achievements?")) {
+            gameEngine.resetSaveProgress();
+        }
+    });
+
+    // Pause
+    document.getElementById('btn-pause-game').addEventListener('click', () => {
+        gameEngine.pauseGame();
+    });
+    document.getElementById('btn-pause-resume').addEventListener('click', () => {
+        gameEngine.resumeGame();
+    });
+    document.getElementById('btn-pause-mute').addEventListener('click', (e) => {
+        const isMuted = window.sounds.toggleMute();
+        e.target.textContent = isMuted ? "Unmute Audio" : "Mute Audio";
+        window.sounds.playClick();
+    });
+    document.getElementById('btn-pause-exit').addEventListener('click', () => {
+        gameEngine.exitToMenu();
+    });
+
+    // Fullscreen Toggles
+    function toggleFullscreen() {
+        window.sounds.playClick();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn("Fullscreen request failed:", err);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+    document.getElementById('btn-menu-fullscreen').addEventListener('click', toggleFullscreen);
+    document.getElementById('btn-hud-fullscreen').addEventListener('click', toggleFullscreen);
+
+    // Victory Screen Back
+    document.getElementById('btn-victory-replay').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('victory-screen').classList.add('hidden');
+        document.getElementById('menu-screen').classList.remove('hidden');
+        gameEngine.gameState = 'menu';
+        gameEngine.updateMenuHUD();
+    });
+
+    // Fact modal button
+    document.getElementById('btn-fact-ok').addEventListener('click', () => {
+        window.sounds.playClick();
+        document.getElementById('fact-modal').classList.add('hidden');
+        if (gameEngine.activeFactNode) {
+            const node = gameEngine.activeFactNode;
+            node.read = true;
+            gameEngine.currentLevel.collectedCount++;
+            gameEngine.score += 100;
+            gameEngine.soundManager.playCollect();
+            gameEngine.actionProgress = 0;
+            gameEngine.activeFactNode = null;
+            gameEngine.updateGameplayHUD();
+        }
+        gameEngine.gameState = 'playing'; // resume
+    });
+
+    // Initialize Game Engine on Window Load
+    window.addEventListener('load', () => {
+        gameEngine.init('game-canvas');
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        }
+    });
+</script>
+
+</body>
+</html>
